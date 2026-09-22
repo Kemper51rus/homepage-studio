@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-REPO_URL="${HOMEPAGE_EDITOR_REPO:-https://github.com/Kemper51rus/homepage-configurator.git}"
+REPO_URL="${HOMEPAGE_EDITOR_REPO:-https://github.com/Kemper51rus/homepage-studio.git}"
 BRANCH="${HOMEPAGE_EDITOR_BRANCH:-main}"
 SERVICE_NAME="${HOMEPAGE_SERVICE_NAME:-homepage.service}"
 
@@ -521,7 +521,7 @@ download_mod() {
   command -v tar >/dev/null 2>&1 || die "tar is required when git is not available"
 
   mkdir -p "$MOD_DIR"
-  curl -fsSL "https://github.com/Kemper51rus/homepage-configurator/archive/refs/heads/${BRANCH}.tar.gz" \
+  curl -fsSL "https://github.com/Kemper51rus/homepage-studio/archive/refs/heads/${BRANCH}.tar.gz" \
     | tar -xz -C "$MOD_DIR" --strip-components=1
   log "Using mod source: $MOD_DIR (downloaded from GitHub tarball)"
 }
@@ -1458,7 +1458,7 @@ $containers
 [homepage-configurator] Standard gethomepage/homepage Docker containers do not contain a persistent writable source checkout.
 [homepage-configurator] This mod patches Homepage source files, so install it into a local gethomepage/homepage checkout or custom image source:
 
-  HOMEPAGE_TARGET_DIR=/path/to/homepage bash <(curl -Ls https://raw.githubusercontent.com/Kemper51rus/homepage-configurator/main/install.sh)
+  HOMEPAGE_TARGET_DIR=/path/to/homepage bash <(curl -Ls https://raw.githubusercontent.com/Kemper51rus/homepage-studio/main/install.sh)
 
 [homepage-configurator] After that, rebuild/restart your custom Docker image/container.
 EOF

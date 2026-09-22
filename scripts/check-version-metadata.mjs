@@ -6,7 +6,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const packageJson = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
 const metadata = JSON.parse(readFileSync(join(root, "version.json"), "utf8"));
 
-const expectedRepo = "Kemper51rus/homepage-configurator";
+const expectedRepo = "Kemper51rus/homepage-studio";
 const expectedBranch = "main";
 const expectedMetadataUrl = `https://api.github.com/repos/${expectedRepo}/contents/version.json?ref=${expectedBranch}`;
 const expectedInstallUrl = `https://raw.githubusercontent.com/${expectedRepo}/${expectedBranch}/install.sh`;

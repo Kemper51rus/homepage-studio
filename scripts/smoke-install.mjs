@@ -6,6 +6,7 @@ import { tmpdir } from "os";
 const root = process.cwd();
 const tempRoot = mkdtempSync(join(tmpdir(), "homepage-configurator-smoke-"));
 const target = join(tempRoot, "homepage");
+const upstreamRef = process.env.HOMEPAGE_TEST_REF || "v2.0.0";
 
 function run(command, args, options = {}) {
   return execFileSync(command, args, {
@@ -23,7 +24,7 @@ function currentPatchFiles() {
 }
 
 try {
-  run("git", ["clone", "--depth", "1", "https://github.com/gethomepage/homepage.git", target], { stdio: "inherit" });
+  run("git", ["clone", "--depth", "1", "--branch", upstreamRef, "https://github.com/gethomepage/homepage.git", target], { stdio: "inherit" });
 
   const originalPackageJson = JSON.parse(readFileSync(join(target, "package.json"), "utf8"));
   writeFileSync(join(target, "package.json"), `${JSON.stringify({ ...originalPackageJson, version: "0.0.1" }, null, 2)}\n`);

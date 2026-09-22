@@ -6,6 +6,7 @@ import { tmpdir } from "os";
 const root = process.cwd();
 const tempRoot = mkdtempSync(join(tmpdir(), "homepage-configurator-patch-"));
 const target = join(tempRoot, "homepage");
+const upstreamRef = process.env.HOMEPAGE_TEST_REF || "v2.0.0";
 
 function run(command, args, options = {}) {
   return execFileSync(command, args, {
@@ -16,12 +17,12 @@ function run(command, args, options = {}) {
 }
 
 try {
-  run("git", ["clone", "--depth", "1", "https://github.com/gethomepage/homepage.git", target], { stdio: "inherit" });
+  run("git", ["clone", "--depth", "1", "--branch", upstreamRef, "https://github.com/gethomepage/homepage.git", target], { stdio: "inherit" });
   run("git", ["-c", `safe.directory=${target}`, "apply", "--check", join(root, "browser-editor.patch")], {
     cwd: target,
     stdio: "inherit",
   });
-  console.log("Core patch applies cleanly to upstream Homepage.");
+  console.log(`Core patch applies cleanly to Homepage ${upstreamRef}.`);
 } finally {
   rmSync(tempRoot, { force: true, recursive: true });
 }

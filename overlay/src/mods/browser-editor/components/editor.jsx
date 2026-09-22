@@ -10241,7 +10241,7 @@ function ConfiguratorUpdatePanel({ onSaved, studioMode = false }) {
     "неизвестно";
   const targetUpdateRequired = Boolean(updateInfo?.targetUpdateRequired);
   const targetUpdateCommand = updateInfo?.targetUpdateCommand || "update";
-  const consoleUpdateCommand = `bash <(curl -Ls ${updateInfo?.latest?.installUrl || "https://raw.githubusercontent.com/Kemper51rus/homepage-configurator/main/install.sh"}) --action update`;
+  const consoleUpdateCommand = `bash <(curl -Ls ${updateInfo?.latest?.installUrl || "https://raw.githubusercontent.com/Kemper51rus/homepage-studio/main/install.sh"}) --action update`;
   const updateProgress = updateProgressPercent(status);
   const updateTone = updateStateToneClasses(status?.state);
   const updateStatusTitle = updateStateTitle(status?.state);

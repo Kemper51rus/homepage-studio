@@ -1,7 +1,9 @@
 <h1>
   <img src="logo-conf.png" alt="Homepage configurator logo" width="36" height="36" align="absmiddle" style="vertical-align: -6px;">
-  Homepage configurator
+  Homepage Studio
 </h1>
+
+> Этот репозиторий сохраняет интегрированную линию Dashboard Studio. Точная исходная версия до разделения доступна по тегу `studio-integrated-v0.6.82`; ветка `main` использует собственный источник обновлений `Kemper51rus/homepage-studio`.
 
 Отдельный мод для [gethomepage/homepage](https://github.com/gethomepage/homepage), который добавляет редактирование dashboard прямо из браузера:
 
@@ -30,7 +32,7 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/Proxmo
 Установка этого мода (Homepage configurator):
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/Kemper51rus/homepage-configurator/main/install.sh)
+bash <(curl -Ls https://raw.githubusercontent.com/Kemper51rus/homepage-studio/main/install.sh)
 ```
 
 Если target был создан через Proxmox VE Community Scripts, запускайте установку мода уже внутри созданного LXC. Установщик сам найдёт `/opt/homepage`, будет использовать `/opt/homepage/config` для `custom.css/custom.js` и сохранит флаг редактора в существующий `/opt/homepage/.env`.

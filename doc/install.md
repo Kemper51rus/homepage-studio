@@ -27,7 +27,7 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/Proxmo
 Установка этого мода (Homepage configurator):
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/Kemper51rus/homepage-configurator/main/install.sh)
+bash <(curl -Ls https://raw.githubusercontent.com/Kemper51rus/homepage-studio/main/install.sh)
 ```
 
 Если target был создан через Proxmox VE Community Scripts, запускайте установку мода уже внутри созданного LXC. Такой target лежит в `/opt/homepage`, config находится в `/opt/homepage/config`, а переменные окружения хранятся в `/opt/homepage/.env`; `install.sh` учитывает этот layout автоматически.
@@ -115,7 +115,7 @@ node install.mjs --uninstall --target /path/to/gethomepage/homepage
 Если нужно подтянуть актуальную версию мода с GitHub и переустановить её в target-проект, достаточно снова запустить:
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/Kemper51rus/homepage-configurator/main/install.sh)
+bash <(curl -Ls https://raw.githubusercontent.com/Kemper51rus/homepage-studio/main/install.sh)
 ```
 
 и выбрать `Обновить мод из GitHub`.
@@ -212,12 +212,12 @@ HOMEPAGE_EDITOR_MOD_DIR=/opt/homepage-configurator bash ./install.sh --action up
 
 1. создайте LXC из Proxmox VE Shell командой `bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/homepage.sh)"`;
 2. войдите в созданный LXC;
-3. запустите установку мода командой `bash <(curl -Ls https://raw.githubusercontent.com/Kemper51rus/homepage-configurator/main/install.sh)`.
+3. запустите установку мода командой `bash <(curl -Ls https://raw.githubusercontent.com/Kemper51rus/homepage-studio/main/install.sh)`.
 
 В этом варианте конфиги Homepage находятся в `/opt/homepage/config`, поэтому для установки только custom-дополнений можно явно передать:
 
 ```bash
-HOMEPAGE_CONFIG_DIR=/opt/homepage/config bash <(curl -Ls https://raw.githubusercontent.com/Kemper51rus/homepage-configurator/main/install.sh)
+HOMEPAGE_CONFIG_DIR=/opt/homepage/config bash <(curl -Ls https://raw.githubusercontent.com/Kemper51rus/homepage-studio/main/install.sh)
 ```
 
 Для radio/FPS assets в community LXC установщик использует `/opt/homepage/public/images/radio`, потому что этот путь отдаётся Homepage наружу как `/images/radio`.
