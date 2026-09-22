@@ -32,7 +32,7 @@ import {
   studioServiceStatusOffsetMax,
   studioServiceStatusOffsetMin,
 } from "mods/browser-editor/lib/studio-pages";
-import { CodeEditor } from "./editor";
+import { CodeEditor } from "./code-editor";
 
 const cardColors = [
   ["color-sky", "#25c1ff"],
