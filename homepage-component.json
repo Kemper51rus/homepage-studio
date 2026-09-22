@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "id": "homepage-studio",
+  "name": "Homepage Studio",
+  "version": "0.1.0-beta.1",
+  "description": "Optional compile-time Studio component for Homepage Configurator",
+  "requires": {
+    "homepageConfigurator": ">=0.8.0-beta.1 <0.9.0",
+    "homepage": ">=1.13.2"
+  },
+  "capabilities": [
+    "dashboard-studio",
+    "card-backgrounds",
+    "service-updates",
+    "three-x-ui"
+  ],
+  "overlay": {
+    "root": "overlay",
+    "files": [
+      "src/mods/browser-editor/api/service-update-docker.js",
+      "src/mods/browser-editor/api/service-update-lxc.js",
+      "src/mods/browser-editor/api/service-updates.js",
+      "src/mods/browser-editor/api/three-x-ui.js",
+      "src/mods/browser-editor/components/dashboard-studio.jsx",
+      "src/mods/browser-editor/components/service-update.jsx",
+      "src/mods/browser-editor/lib/card-background.js",
+      "src/mods/browser-editor/lib/service-update-config.js",
+      "src/mods/browser-editor/lib/studio-order.js",
+      "src/mods/browser-editor/lib/studio-pages.js",
+      "src/mods/browser-editor/lib/three-x-ui-config.js",
+      "src/pages/api/config/service-updates.js",
+      "src/pages/api/config/three-x-ui.js"
+    ]
+  },
+  "apiRoutes": [
+    "/api/config/service-updates",
+    "/api/config/three-x-ui"
+  ],
+  "managedCss": [
+    {
+      "id": "homepage-studio-cards",
+      "source": "custom-config/cards/custom.css"
+    }
+  ],
+  "configFiles": [
+    "service-updates.yaml",
+    "service-update-sources.yaml",
+    "three-x-ui.yaml"
+  ],
+  "dataDirs": [
+    "service-update-runners",
+    ".service-update-status"
+  ],
+  "runtimeScripts": [
+    "scripts/install-proxmox-lxc-helper.sh",
+    "scripts/proxmox-lxc-updater.sh"
+  ],
+  "verification": [
+    "node scripts/validate-component-manifest.mjs",
+    "node --test tests/component-manifest.test.mjs tests/studio-*.test.mjs tests/card-background.test.mjs tests/service-update-config.test.mjs tests/three-x-ui-config.test.mjs"
+  ]
+}
