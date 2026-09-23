@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import ResolvedIcon from "components/resolvedicon";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { editorWriteFetch } from "mods/browser-editor/client/editor-fetch";
 import {
