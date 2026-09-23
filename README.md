@@ -116,6 +116,18 @@ bash <(curl -Ls https://raw.githubusercontent.com/Kemper51rus/homepage-studio/ma
 - [Структура мода](doc/mod-structure.md)
 - [Разработка](doc/development.md)
 
+## Component release
+
+Manifest компонента проверяется и собирается в детерминированный `tar.gz` командой:
+
+```bash
+npm run release:component
+```
+
+По умолчанию архив и JSON-метаданные создаются в `dist/`. Другой каталог можно задать через `COMPONENT_RELEASE_DIR` (относительный путь считается от корня репозитория). Безопасный release tag добавляется через `COMPONENT_RELEASE_TAG`; допустимы латинские буквы, цифры, `.`, `_` и `-`, при этом tag должен начинаться и заканчиваться буквой или цифрой.
+
+В архив входят только `homepage-component.json`, объявленные `overlay.files`, исходники `managedCss` и `runtimeScripts`. Сборка сначала валидирует manifest и отклоняет пути, которые через symlink выходят за корень компонента. JSON-метаданные содержат schema, id/version/tag, имя архива, SHA-256, размер и время создания.
+
 ## Проверки
 
 Зависимости для полного набора проверок: `shellcheck` и Chromium для Playwright (`npx playwright install --with-deps chromium`).
