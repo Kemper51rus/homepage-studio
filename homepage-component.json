@@ -17,21 +17,61 @@
   "overlay": {
     "root": "overlay",
     "files": [
+      "src/mods/browser-editor/api/background.js",
+      "src/mods/browser-editor/api/editor.js",
+      "src/mods/browser-editor/api/icon.js",
       "src/mods/browser-editor/api/service-update-docker.js",
       "src/mods/browser-editor/api/service-update-lxc.js",
       "src/mods/browser-editor/api/service-updates.js",
       "src/mods/browser-editor/api/three-x-ui.js",
+      "src/mods/browser-editor/client/editor-fetch.js",
+      "src/mods/browser-editor/components/code-editor.jsx",
       "src/mods/browser-editor/components/dashboard-studio.jsx",
+      "src/mods/browser-editor/components/editor.jsx",
       "src/mods/browser-editor/components/service-update.jsx",
+      "src/mods/browser-editor/components/topbar-editor.jsx",
       "src/mods/browser-editor/lib/card-background.js",
+      "src/mods/browser-editor/lib/editor-window.js",
+      "src/mods/browser-editor/lib/favicon-resolver.js",
+      "src/mods/browser-editor/lib/icon-search.js",
+      "src/mods/browser-editor/lib/item-config.js",
       "src/mods/browser-editor/lib/service-update-config.js",
       "src/mods/browser-editor/lib/studio-order.js",
       "src/mods/browser-editor/lib/studio-pages.js",
+      "src/mods/browser-editor/lib/templates.js",
       "src/mods/browser-editor/lib/three-x-ui-config.js",
+      "src/mods/browser-editor/lib/topbar-config-helper.js",
+      "src/pages/api/config/background.js",
+      "src/pages/api/config/editor.js",
+      "src/pages/api/config/icon/[file].js",
       "src/pages/api/config/service-updates.js",
-      "src/pages/api/config/three-x-ui.js"
+      "src/pages/api/config/three-x-ui.js",
+      "src/widgets/torrsyncarr/component.jsx",
+      "src/widgets/torrsyncarr/proxy.js",
+      "src/widgets/torrsyncarr/widget.js"
     ]
   },
+  "replacesCoreFiles": [
+    "src/mods/browser-editor/api/background.js",
+    "src/mods/browser-editor/api/editor.js",
+    "src/mods/browser-editor/api/icon.js",
+    "src/mods/browser-editor/client/editor-fetch.js",
+    "src/mods/browser-editor/components/code-editor.jsx",
+    "src/mods/browser-editor/components/editor.jsx",
+    "src/mods/browser-editor/components/topbar-editor.jsx",
+    "src/mods/browser-editor/lib/editor-window.js",
+    "src/mods/browser-editor/lib/favicon-resolver.js",
+    "src/mods/browser-editor/lib/icon-search.js",
+    "src/mods/browser-editor/lib/item-config.js",
+    "src/mods/browser-editor/lib/templates.js",
+    "src/mods/browser-editor/lib/topbar-config-helper.js",
+    "src/pages/api/config/background.js",
+    "src/pages/api/config/editor.js",
+    "src/pages/api/config/icon/[file].js",
+    "src/widgets/torrsyncarr/component.jsx",
+    "src/widgets/torrsyncarr/proxy.js",
+    "src/widgets/torrsyncarr/widget.js"
+  ],
   "apiRoutes": [
     "/api/config/service-updates",
     "/api/config/three-x-ui"
@@ -42,14 +82,15 @@
       "source": "custom-config/cards/custom.css"
     }
   ],
-  "configFiles": [
-    "service-updates.yaml",
-    "service-update-sources.yaml",
-    "three-x-ui.yaml"
-  ],
+  "configFiles": [],
   "dataDirs": [
-    "service-update-runners",
-    ".service-update-status"
+    ".homepage-studio/service-update-runners",
+    ".homepage-studio/service-update-status"
+  ],
+  "persistentFiles": [
+    "config/service-updates.yaml",
+    "config/service-update-sources.yaml",
+    "config/three-x-ui.yaml"
   ],
   "runtimeScripts": [
     "scripts/install-proxmox-lxc-helper.sh",

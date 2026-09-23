@@ -113,8 +113,15 @@ export function validateComponentManifest(manifest, options = {}) {
     });
   }
 
-  for (const key of ["configFiles", "dataDirs"]) {
-    const values = pushUniqueStrings(manifest[key], key, errors);
+  const overlayTargets = new Set(manifest.overlay?.files ?? []);
+  const replacementFiles = pushUniqueStrings(manifest.replacesCoreFiles, "replacesCoreFiles", errors, { allowEmpty: true });
+  replacementFiles.forEach((value, index) => {
+    if (!isSafeComponentPath(value)) errors.push(`replacesCoreFiles[${index}] is not a safe relative path`);
+    if (!overlayTargets.has(value)) errors.push(`replacesCoreFiles[${index}] must also be declared in overlay.files`);
+  });
+
+  for (const key of ["configFiles", "dataDirs", "persistentFiles"]) {
+    const values = pushUniqueStrings(manifest[key], key, errors, { allowEmpty: true });
     values.forEach((value, index) => {
       if (!isSafeComponentPath(value)) errors.push(`${key}[${index}] is not a safe relative path`);
     });
