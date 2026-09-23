@@ -15,6 +15,13 @@ const dashboardStudioSource = readFileSync(
 const editorSource = readFileSync(componentUrl("editor.jsx"), "utf8");
 const registrySource = readFileSync(componentUrl("installed-components.js"), "utf8");
 
+test("Studio theme keeps the transparent input layer from covering highlighted code", () => {
+  assert.match(
+    editorSource,
+    /\.homepage-themed-configurator \.homepage-editor-textarea\s*\{[^}]*background-color:\s*transparent\s*!important;[^}]*color:\s*transparent\s*!important;/s,
+  );
+});
+
 test("Studio and editor import the shared CodeEditor primitive directly", () => {
   assert.doesNotMatch(
     dashboardStudioSource,

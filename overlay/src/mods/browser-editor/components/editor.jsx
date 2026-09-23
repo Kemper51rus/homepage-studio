@@ -3128,6 +3128,7 @@ function ConfiguratorControlTheme() {
       }
 
       .homepage-themed-configurator .homepage-editor-textarea {
+        background-color: transparent !important;
         color: transparent !important;
         -webkit-text-fill-color: transparent !important;
         caret-color: var(--studio-accent) !important;
