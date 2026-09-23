@@ -9539,7 +9539,11 @@ function ConfiguratorUpdatePanel({ onSaved, studioMode = false }) {
   const [activeUpdateFileName, setActiveUpdateFileName] = useState(
     CONFIGURATOR_UPDATE_LOG_TAB,
   );
+  const [componentCatalog, setComponentCatalog] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [operation, setOperation] = useState(null);
   const [error, setError] = useState("");
+  const [restartRequired, setRestartRequired] = useState(false);
 
   const loadUpdateFiles = useCallback(async () => {
     const nextData = await postEditorAction({
@@ -9590,11 +9594,29 @@ function ConfiguratorUpdatePanel({ onSaved, studioMode = false }) {
     [loadUpdateFiles],
   );
 
+  const loadComponentCatalog = useCallback(async () => {
+    setLoading(true);
+    try {
+      const nextData = await postEditorAction({
+        action: "get-component-catalog",
+      });
+      setComponentCatalog(nextData?.catalog ?? []);
+    } catch (catalogError) {
+      setError(`Не удалось загрузить каталог компонентов: ${catalogError.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     checkUpdate(true);
     loadStatus().catch((statusError) => setError(statusError.message));
     loadUpdateFiles().catch((filesError) => setError(filesError.message));
   }, [checkUpdate, loadStatus, loadUpdateFiles]);
+
+  useEffect(() => {
+    loadComponentCatalog();
+  }, [loadComponentCatalog]);
 
   useEffect(() => {
     if (!status || !["running", "restarting"].includes(status.state)) {
@@ -9608,8 +9630,20 @@ function ConfiguratorUpdatePanel({ onSaved, studioMode = false }) {
   }, [loadStatus, status]);
 
   const running = status && ["running", "restarting"].includes(status.state);
+  const studioComponent =
+    componentCatalog.find(
+      (component) =>
+        component.componentId === "homepage-studio" &&
+        component.sourceId === "github-stable",
+    ) ?? null;
+  const componentBusy = Boolean(operation);
+  const componentControlsDisabled = Boolean(
+    componentBusy || running || updating,
+  );
   const updateAvailable = Boolean(updateInfo?.updateAvailable);
-  const canRunUpdate = Boolean(updateInfo?.canUpdate && !running && !updating);
+  const canRunUpdate = Boolean(
+    updateInfo?.canUpdate && !running && !updating && !componentBusy,
+  );
   const currentVersion =
     updateInfo?.currentVersion || status?.currentVersion || "неизвестно";
   const latestVersion =
@@ -9652,6 +9686,50 @@ function ConfiguratorUpdatePanel({ onSaved, studioMode = false }) {
     serviceDataFiles.find((file) => file.fileName === activeUpdateFileName) ??
     serviceDataFiles[0] ??
     null;
+  const componentAvailabilityMessage = studioComponent?.available
+    ? "Стабильный источник GitHub доступен."
+    : studioComponent?.availabilityReason
+      ? "Стабильный источник Homepage Studio сейчас недоступен."
+      : "Источник Homepage Studio недоступен.";
+
+  async function runComponentOperation(nextOperation) {
+    if (
+      nextOperation === "remove" &&
+      !window.confirm(
+        "Удалить Homepage Studio? После сборки потребуется перезапуск Homepage.",
+      )
+    ) {
+      return;
+    }
+
+    setOperation(nextOperation);
+    setError("");
+    setRestartRequired(false);
+
+    try {
+      const result = await postEditorAction({
+        action: "run-component-operation",
+        componentId: "homepage-studio",
+        sourceId: "github-stable",
+        operation: nextOperation,
+      });
+      setComponentCatalog(result?.catalog ?? []);
+      setRestartRequired(Boolean(result?.restartRequired));
+      onSaved(
+        nextOperation === "remove"
+          ? "Homepage Studio удалён"
+          : nextOperation === "update"
+            ? "Homepage Studio обновлён"
+            : "Homepage Studio установлен",
+      );
+    } catch (operationError) {
+      setError(
+        `Операция Homepage Studio не выполнена: ${operationError.message}`,
+      );
+    } finally {
+      setOperation(null);
+    }
+  }
 
   async function startUpdate() {
     setUpdating(true);
@@ -9771,7 +9849,7 @@ function ConfiguratorUpdatePanel({ onSaved, studioMode = false }) {
           <button
             type="button"
             onClick={() => checkUpdate(true)}
-            disabled={checking || running}
+            disabled={checking || running || componentBusy}
             className="rounded-md border border-theme-400/60 px-3 py-2 text-sm font-medium transition-colors hover:bg-theme-200/40 disabled:cursor-wait disabled:opacity-60 dark:border-white/20 dark:hover:bg-white/10"
           >
             {checking ? "Проверка..." : "Проверить версию"}
@@ -9789,6 +9867,134 @@ function ConfiguratorUpdatePanel({ onSaved, studioMode = false }) {
                 : "Переустановить с GitHub"}
           </button>
         </div>
+      </div>
+
+      <div
+        className={classNames(
+          "rounded-md border p-4",
+          studioMode
+            ? "border-sky-400/30 bg-sky-500/5 dark:border-sky-300/20"
+            : "border-theme-300/50 dark:border-white/10",
+        )}
+        data-component-card="homepage-studio"
+      >
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 className="text-base font-semibold text-theme-900 dark:text-theme-50">
+              Homepage Studio
+            </h3>
+            <p className="mt-1 text-xs text-theme-600 dark:text-theme-400">
+              Компонент Studio из стабильного источника GitHub.
+            </p>
+          </div>
+          <span
+            className={classNames(
+              "rounded-md border px-3 py-1.5 text-xs font-semibold",
+              studioComponent?.installed
+                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200"
+                : "border-theme-300/50 bg-theme-100/50 text-theme-700 dark:border-white/10 dark:bg-white/5 dark:text-theme-300",
+            )}
+          >
+            {studioComponent?.installed ? "Установлен" : "Не установлен"}
+          </span>
+        </div>
+
+        {loading ? (
+          <div className="mt-4 text-xs text-theme-600 dark:text-theme-400">
+            Загрузка каталога...
+          </div>
+        ) : studioComponent ? (
+          <>
+            <div className="mt-4 grid gap-3 border-t border-theme-300/30 pt-3 dark:border-white/10 md:grid-cols-2">
+              <div>
+                <div className="text-[11px] font-semibold uppercase text-theme-500 dark:text-theme-400">
+                  Установлено
+                </div>
+                <div className="mt-1 text-lg font-semibold">
+                  {studioComponent.installedVersion || "—"}
+                </div>
+                <div className="mt-0.5 text-[11px] text-theme-500 dark:text-theme-400">
+                  installed: {studioComponent.installed ? "да" : "нет"}
+                </div>
+              </div>
+              <div>
+                <div className="text-[11px] font-semibold uppercase text-theme-500 dark:text-theme-400">
+                  Доступно
+                </div>
+                <div className="mt-1 text-lg font-semibold">
+                  {studioComponent.availableVersion || "—"}
+                </div>
+                <div className="mt-0.5 text-[11px] text-theme-500 dark:text-theme-400">
+                  available: {studioComponent.available ? "да" : "нет"}
+                </div>
+              </div>
+            </div>
+
+            <div
+              className={classNames(
+                "mt-3 rounded-md border p-3 text-xs",
+                studioComponent.available
+                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200"
+                  : "border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-200",
+              )}
+            >
+              {componentAvailabilityMessage}
+              {studioComponent.availabilityReason && (
+                <span className="ml-1 font-mono">
+                  ({studioComponent.availabilityReason})
+                </span>
+              )}
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {!studioComponent.installed ? (
+                <button
+                  type="button"
+                  onClick={() => runComponentOperation("install")}
+                  disabled={
+                    componentControlsDisabled || !studioComponent.available
+                  }
+                  className="rounded-md bg-theme-800 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-theme-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-theme-100 dark:text-theme-900 dark:hover:bg-white"
+                >
+                  {operation === "install" ? "Сборка…" : "Install"}
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => runComponentOperation("update")}
+                    disabled={
+                      componentControlsDisabled || !studioComponent.available
+                    }
+                    className="rounded-md bg-theme-800 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-theme-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-theme-100 dark:text-theme-900 dark:hover:bg-white"
+                  >
+                    {operation === "update" ? "Сборка…" : "Update"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => runComponentOperation("remove")}
+                    disabled={componentControlsDisabled}
+                    className="rounded-md border border-rose-500/40 px-3 py-2 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-50 dark:text-rose-300"
+                  >
+                    {operation === "remove" ? "Сборка…" : "Remove"}
+                  </button>
+                </>
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="mt-4 rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-200">
+            Homepage Studio (homepage-studio / github-stable) не найден в
+            каталоге.
+          </div>
+        )}
+
+        {restartRequired && (
+          <div className="mt-3 rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-200">
+            Изменения собраны. Для их применения перезапустите Homepage
+            вручную.
+          </div>
+        )}
       </div>
 
       <div className="rounded-md border border-theme-300/50 p-4 dark:border-white/10">
