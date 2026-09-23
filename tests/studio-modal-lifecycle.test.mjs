@@ -29,7 +29,7 @@ test("closing Studio also closes child configurator windows", () => {
   assert.match(closeStudioSource, /setIconsManagerOpen\(false\)/);
   assert.match(closeStudioSource, /setIconSelectorCallback\(null\)/);
   assert.match(closeStudioSource, /setStudioOpen\(false\)/);
-  assert.match(editorSource, /onClose=\{closeStudio\}/);
+  assert.match(editorSource, /onClose: closeStudio/);
 });
 
 test("switching from Studio to canvas uses the same child-window cleanup", () => {
@@ -43,7 +43,7 @@ test("switching from Studio to canvas uses the same child-window cleanup", () =>
   assert.ok(canvasEnd > canvasStart);
   assert.match(canvasSource, /closeStudio\(\)/);
   assert.match(canvasSource, /setEditMode\(true\)/);
-  assert.match(editorSource, /onCanvasEdit=\{openCanvasEditor\}/);
+  assert.match(editorSource, /onCanvasEdit: openCanvasEditor/);
 });
 
 test("canvas layout actions open group and update windows with Studio chrome", () => {

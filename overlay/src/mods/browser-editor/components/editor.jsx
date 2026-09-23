@@ -67,12 +67,19 @@ import {
   threeXuiSourceFromWidget,
   threeXuiSourcePattern,
 } from "mods/browser-editor/lib/three-x-ui-config";
-import DashboardStudio, {
+import {
+  createEditorComponentHost,
+  validateInstalledEditorComponents,
+} from "mods/browser-editor/lib/component-host";
+import {
   StudioModalWindow,
   StudioServiceWidgetModal,
 } from "./dashboard-studio";
 import { CodeEditor } from "./code-editor";
+import { installedEditorComponents } from "./installed-components";
 import TopBarSettingsEditor from "./topbar-editor";
+
+const editorComponents = validateInstalledEditorComponents(installedEditorComponents);
 
 const ConfigEditorContext = createContext({
   activePageName: null,
@@ -13084,6 +13091,57 @@ export function ConfigEditorProvider({ children }) {
     );
   }
 
+  const studioDashboardProps = {
+    data,
+    onClose: closeStudio,
+    onCanvasEdit: openCanvasEditor,
+    onOpenAppearance: () => setModal({ type: "background" }),
+    onOpenConfig: () => {
+      setStudioOpen(false);
+      setModal({ type: "settings-tabs", fromStudio: true });
+    },
+    onOpenIcons: () => setIconsManagerOpen(true),
+    onOpenItem: (type, groupName, itemName, item, itemIndex) =>
+      setModal({
+        type,
+        groupName,
+        itemName,
+        item,
+        itemMatcher: createItemMatcher(type, itemName, item),
+        itemIndex,
+        mode: "edit",
+        studioChrome: true,
+      }),
+    onOpenNewGroup: (type) =>
+      setModal({ type, groupName: "", layout: {}, mode: "new", scope: "group", studioChrome: true }),
+    onOpenNewItem: (type, groupName) =>
+      setModal({ type, groupName, itemName: "", item: {}, mode: "new", studioChrome: true }),
+    onOpenTopWidget: (widget, widgetIndex) =>
+      setModal({ type: "widgets", widget, widgetIndex, mode: "edit", scope: "top-widget" }),
+    onOpenUpdates: () => setModal({ type: "configurator-updates", studioChrome: true }),
+    onChooseIcon: chooseStudioIcon,
+    onPickItemIcon: pickStudioItemIcon,
+    onPickTopWidgetIcon: pickStudioTopWidgetIcon,
+    onSaveBookmark: saveStudioBookmark,
+    onSaveGroup: saveStudioGroup,
+    onSaveNewItem: saveStudioNewItem,
+    onSavePage: saveStudioPage,
+    onSavePageStyles: saveStudioPageStyles,
+    onSaveServiceWidget: saveStudioServiceWidget,
+    onSaveTopWidget: saveStudioTopWidget,
+    onMoveItem: value.moveItem,
+    widgetBooleanOptions: WIDGET_BOOLEANS,
+    widgetTemplates: WIDGET_TEMPLATES,
+    widgetTranslations: WIDGET_TRANSLATIONS,
+    widgetTypes: Object.keys(WIDGET_TEMPLATES).sort((left, right) => left.localeCompare(right)),
+  };
+  const componentHost = createEditorComponentHost({
+    snapshot: data,
+    actions: { refresh: () => refreshConfigData(mutate), notify: handleSaved },
+    editor: { homepageStudio: { open: studioOpen, dashboardProps: studioDashboardProps } },
+    ui: {},
+  });
+
   const canvasServiceWidgetItem =
     modal?.scope === "studio-service-widget" &&
     modal.type === "services" &&
@@ -13222,79 +13280,8 @@ export function ConfigEditorProvider({ children }) {
           {notice}
         </div>
       )}
-      {studioOpen && (
-        <DashboardStudio
-          data={data}
-          onClose={closeStudio}
-          onCanvasEdit={openCanvasEditor}
-          onOpenAppearance={() => setModal({ type: "background" })}
-          onOpenConfig={() => {
-            setStudioOpen(false);
-            setModal({ type: "settings-tabs", fromStudio: true });
-          }}
-          onOpenIcons={() => setIconsManagerOpen(true)}
-          onOpenItem={(type, groupName, itemName, item, itemIndex) =>
-            setModal({
-              type,
-              groupName,
-              itemName,
-              item,
-              itemMatcher: createItemMatcher(type, itemName, item),
-              itemIndex,
-              mode: "edit",
-              studioChrome: true,
-            })
-          }
-          onOpenNewGroup={(type) =>
-            setModal({
-              type,
-              groupName: "",
-              layout: {},
-              mode: "new",
-              scope: "group",
-              studioChrome: true,
-            })
-          }
-          onOpenNewItem={(type, groupName) =>
-            setModal({
-              type,
-              groupName,
-              itemName: "",
-              item: {},
-              mode: "new",
-              studioChrome: true,
-            })
-          }
-          onOpenTopWidget={(widget, widgetIndex) =>
-            setModal({
-              type: "widgets",
-              widget,
-              widgetIndex,
-              mode: "edit",
-              scope: "top-widget",
-            })
-          }
-          onOpenUpdates={() =>
-            setModal({ type: "configurator-updates", studioChrome: true })
-          }
-          onChooseIcon={chooseStudioIcon}
-          onPickItemIcon={pickStudioItemIcon}
-          onPickTopWidgetIcon={pickStudioTopWidgetIcon}
-          onSaveBookmark={saveStudioBookmark}
-          onSaveGroup={saveStudioGroup}
-          onSaveNewItem={saveStudioNewItem}
-          onSavePage={saveStudioPage}
-          onSavePageStyles={saveStudioPageStyles}
-          onSaveServiceWidget={saveStudioServiceWidget}
-          onSaveTopWidget={saveStudioTopWidget}
-          onMoveItem={value.moveItem}
-          widgetBooleanOptions={WIDGET_BOOLEANS}
-          widgetTemplates={WIDGET_TEMPLATES}
-          widgetTranslations={WIDGET_TRANSLATIONS}
-          widgetTypes={Object.keys(WIDGET_TEMPLATES).sort((left, right) =>
-            left.localeCompare(right),
-          )}
-        />
+      {editorComponents.map(({ id, Overlay }) =>
+        Overlay ? <Overlay key={id} host={componentHost} /> : null,
       )}
       {modal?.type === "background" && (
         <BackgroundModal

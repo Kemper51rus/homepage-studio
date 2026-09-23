@@ -169,7 +169,7 @@ test("page list and unassigned groups stay out of the inline tab styling mode", 
 test("Studio update action opens the themed Studio update window", () => {
   assert.match(
     editorSource,
-    /onOpenUpdates=\{\(\) =>[\s\S]*?setModal\(\{ type: "configurator-updates", studioChrome: true \}\)/,
+    /onOpenUpdates: \(\) => setModal\(\{ type: "configurator-updates", studioChrome: true \}\)/,
   );
 });
 
