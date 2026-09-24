@@ -30,10 +30,7 @@ test("component API uses the target core module and server-only target context",
     'if (action === "run-component-operation")',
   );
   assert.match(catalogRoute, /await requireHomepageTargetDir\(\)/);
-  assert.match(
-    catalogRoute,
-    /getComponentStatusCatalog\(targetDir, \{ env: process\.env \}\)/,
-  );
+  assert.match(catalogRoute, /await getGithubComponentCatalog\(targetDir\)/);
   assert.doesNotMatch(
     catalogRoute,
     /req\.body\.(?:path|target|targetDir|url)|healthcheckUrl/,
@@ -48,10 +45,12 @@ test("component API uses the target core module and server-only target context",
     operationRoute,
     /const input = getExactComponentOperationInput\(req\.body\)/,
   );
+  assert.match(operationRoute, /await prepareGithubComponentSources\(targetDir, input, \{[\s\S]*?env: process\.env/);
   assert.match(
     operationRoute,
-    /executeComponentOperation\(targetDir, input, \{[\s\S]*?env: process\.env,[\s\S]*?healthcheckUrl: process\.env\.HOMEPAGE_COMPONENT_HEALTHCHECK_URL/,
+    /executeComponentOperation\(targetDir, input, \{[\s\S]*?env: sources\.env,[\s\S]*?healthcheckUrl: process\.env\.HOMEPAGE_COMPONENT_HEALTHCHECK_URL/,
   );
+  assert.match(operationRoute, /sources\.cleanup\(\)/);
   assert.doesNotMatch(
     operationRoute,
     /autoRestart|req\.body\.(?:path|target|targetDir|url)|commands\s*:/,

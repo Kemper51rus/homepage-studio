@@ -9689,10 +9689,8 @@ function ConfiguratorUpdatePanel({ onSaved, studioMode = false }) {
     serviceDataFiles[0] ??
     null;
   const componentAvailabilityMessage = studioComponent?.available
-    ? "Стабильный источник GitHub доступен."
-    : studioComponent?.availabilityReason
-      ? "Стабильный источник Homepage Studio сейчас недоступен."
-      : "Источник Homepage Studio недоступен.";
+    ? "Релиз Homepage Studio доступен на GitHub. Файлы и контрольная сумма проверяются перед установкой."
+    : "Не удалось проверить релиз Homepage Studio на GitHub. Повторите проверку позднее.";
 
   async function waitForHomepageRestart(nextOperation) {
     let sawUnavailable = false;
