@@ -1,5 +1,5 @@
 import { spawn } from "child_process";
-import { existsSync, promises as fs } from "fs";
+import { existsSync, realpathSync, promises as fs } from "fs";
 import { createHash, randomUUID } from "crypto";
 import { lookup } from "dns/promises";
 import net from "net";
@@ -125,9 +125,9 @@ const maxIconBytes = 5 * 1024 * 1024;
 const trackInfoProbeTimeoutMs = 5000;
 const maxTrackInfoProbeBytes = 256 * 1024;
 const configuratorName = "homepage-configurator";
-const configuratorVersion = "0.6.83";
-const defaultConfiguratorRepo = "Kemper51rus/homepage-studio";
-const defaultConfiguratorBranch = "main";
+const configuratorVersion = "0.8.0-beta.5";
+const defaultConfiguratorRepo = "Kemper51rus/homepage-configurator";
+const defaultConfiguratorBranch = "feature/component-host-v1";
 const defaultConfiguratorMetadataUrl = `https://api.github.com/repos/${defaultConfiguratorRepo}/contents/version.json?ref=${defaultConfiguratorBranch}`;
 const defaultConfiguratorInstallUrl = `https://raw.githubusercontent.com/${defaultConfiguratorRepo}/${defaultConfiguratorBranch}/install.sh`;
 const defaultMinimumHomepageVersion = "1.13.2";
@@ -526,6 +526,10 @@ function getConfiguratorUpdateEnv(updateCheck, imagesDir) {
     }
   });
 
+  if (process.env.HOMEPAGE_STUDIO_COMPONENT_DIR) {
+    env.HOMEPAGE_STUDIO_COMPONENT_DIR = process.env.HOMEPAGE_STUDIO_COMPONENT_DIR;
+  }
+
   return {
     ...env,
     HOMEPAGE_EDITOR_REPO: getConfiguratorRepoUrl(updateCheck.latest),
@@ -819,8 +823,8 @@ async function getInstalledConfiguratorInfo(targetDir) {
     : null;
   return {
     name: manifest?.configurator?.name || configuratorName,
-    version: manifest?.configurator?.version || configuratorVersion,
-    installedAt: manifest?.installedAt || null,
+    version: (manifest?.schema === 2 ? manifest.core?.configurator?.version : manifest?.configurator?.version) || configuratorVersion,
+    installedAt: (manifest?.schema === 2 ? manifest.core?.installedAt : manifest?.installedAt) || null,
     targetDir,
     manifestFound: Boolean(manifest),
   };
@@ -896,8 +900,8 @@ async function checkConfiguratorUpdate({ force = false } = {}) {
   ]);
   const installed = await getInstalledConfiguratorInfo(targetDir);
   const targetInfo = await getHomepageTargetInfo(targetDir, metadata);
-  const updateAvailable =
-    compareVersions(installed.version, metadata.version) < 0;
+  const versionComparison = compareVersions(installed.version, metadata.version);
+  const updateAvailable = versionComparison < 0;
   const targetUpdateRequired = Boolean(targetDir && targetInfo.updateRequired);
   const result = {
     checkedAt: new Date().toISOString(),
@@ -912,10 +916,12 @@ async function checkConfiguratorUpdate({ force = false } = {}) {
     targetUpdateCommand: targetInfo.updateCommand,
     targetUpdateRequired,
     updateAvailable,
-    canUpdate: Boolean(targetDir && !targetUpdateRequired),
+    canUpdate: Boolean(targetDir && !targetUpdateRequired && versionComparison <= 0),
     targetDir,
     reason: !targetDir
       ? "Не найден полный checkout Homepage. Для standalone-only runtime используйте внешний deploy."
+      : versionComparison > 0
+        ? `Источник GitHub предлагает ${metadata.version}, но установлен более новый configurator ${installed.version}. Понижение версии заблокировано.`
       : targetUpdateRequired
         ? `Target Homepage ${targetInfo.version || "неизвестной версии"} слишком старый. Минимум для мода: ${targetInfo.minimumVersion}. Сначала обновите target проект из консоли командой \`${targetInfo.updateCommand}\`, затем повторите обновление configurator. ⚠️ Важно: после обновления target Homepage наш мод может полностью перестать работать. Если браузерный редактор не откроется, обновите configurator из консоли: bash <(curl -Ls ${metadata.installUrl}) --action update`
         : "",
@@ -1299,7 +1305,7 @@ function getImagesDir() {
 
   const publicImagesDir = path.join(process.cwd(), "public", "images");
   if (existsSync(publicImagesDir)) {
-    return publicImagesDir;
+    return realpathSync(publicImagesDir);
   }
 
   const sourceImagesDir = path.join(process.cwd(), "images");
