@@ -56,6 +56,9 @@ test("component API uses the target core module and server-only target context",
     operationRoute,
     /autoRestart|req\.body\.(?:path|target|targetDir|url)|commands\s*:/,
   );
+  assert.match(operationRoute, /restartScheduled: true/);
+  assert.match(operationRoute, /restartRequired: false/);
+  assert.match(operationRoute, /scheduleHomepageRestart\(\)/);
 });
 
 test("component API forwards only exact browser body keys", () => {
@@ -94,10 +97,13 @@ test("Studio update panel manages the exact Homepage Studio catalog entry", () =
   assert.match(panel, /"Install"/);
   assert.match(panel, /"Update"/);
   assert.match(panel, /"Remove"/);
-  assert.match(panel, /"Сборка…"/);
+  assert.match(panel, /"Удаление…"/);
   assert.match(panel, /window\.confirm\(/);
   assert.match(panel, /componentBusy \|\| running \|\| updating/);
-  assert.match(panel, /Для их применения перезапустите Homepage/);
+  assert.match(panel, /data-component-operation-progress/);
+  assert.match(panel, /Автоматически перезапускаю Homepage/);
+  assert.match(panel, /waitForHomepageRestart\(nextOperation\)/);
+  assert.match(panel, /window\.location\.reload\(\)/);
 });
 
 test("component operation sends only the fixed browser payload", () => {
