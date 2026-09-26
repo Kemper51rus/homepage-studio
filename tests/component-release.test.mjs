@@ -39,9 +39,10 @@ test("component release is deterministic and contains only declared files", () =
   writeFileSync(sensitivePath, "must not be published\n", { mode: 0o600 });
 
   try {
-    const first = buildComponentRelease({ rootDirectory, outputDirectory, tag: "test-release" });
+    const canonicalTag = `${manifest.id}-v${manifest.version}`;
+    const first = buildComponentRelease({ rootDirectory, outputDirectory, tag: canonicalTag });
     const firstChecksum = sha256(first.artifactPath);
-    const second = buildComponentRelease({ rootDirectory, outputDirectory, tag: "test-release" });
+    const second = buildComponentRelease({ rootDirectory, outputDirectory, tag: canonicalTag });
     const secondChecksum = sha256(second.artifactPath);
 
     assert.equal(secondChecksum, firstChecksum);
@@ -60,7 +61,7 @@ test("component release is deterministic and contains only declared files", () =
     assert.equal(second.metadata.schema, 1);
     assert.equal(second.metadata.id, manifest.id);
     assert.equal(second.metadata.version, manifest.version);
-    assert.equal(second.metadata.tag, "test-release");
+    assert.equal(second.metadata.tag, canonicalTag);
     assert.equal(second.metadata.artifactName, "homepage-studio-component.tar.gz");
     assert.equal(path.basename(second.artifactPath), "homepage-studio-component.tar.gz");
     assert.equal(path.basename(second.metadataPath), "homepage-component-release.json");
@@ -83,12 +84,14 @@ test("component release is deterministic and contains only declared files", () =
   }
 });
 
-test("component release rejects unsafe tags", () => {
+test("component release rejects every non-canonical tag", () => {
   const outputDirectory = path.join(tmpdir(), `homepage-component-release-invalid-${process.pid}`);
-  assert.throws(
-    () => buildComponentRelease({ rootDirectory, outputDirectory, tag: "../latest" }),
-    /COMPONENT_RELEASE_TAG/,
-  );
+  for (const tag of ["../latest", "test-release", `homepage-studio-v${manifest.version}-other`]) {
+    assert.throws(
+      () => buildComponentRelease({ rootDirectory, outputDirectory, tag }),
+      /COMPONENT_RELEASE_TAG must exactly match/,
+    );
+  }
   rmSync(outputDirectory, { recursive: true, force: true });
 });
 

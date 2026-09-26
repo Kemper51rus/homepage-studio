@@ -2,10 +2,10 @@
   "schema": 1,
   "id": "homepage-studio",
   "name": "Homepage Studio",
-  "version": "0.1.0-beta.7",
+  "version": "0.1.0-beta.8",
   "description": "Optional compile-time Studio component for Homepage Configurator",
   "requires": {
-    "homepageConfigurator": ">=0.8.0-beta.1 <0.9.0",
+    "homepageConfigurator": ">=0.8.0-beta.9 <0.9.0",
     "homepage": ">=1.13.2"
   },
   "capabilities": [
@@ -99,9 +99,5 @@
   "runtimeScripts": [
     "scripts/install-proxmox-lxc-helper.sh",
     "scripts/proxmox-lxc-updater.sh"
-  ],
-  "verification": [
-    "node scripts/validate-component-manifest.mjs",
-    "node --test tests/component-manifest.test.mjs tests/studio-*.test.mjs tests/card-background.test.mjs tests/service-update-config.test.mjs tests/three-x-ui-config.test.mjs"
   ]
 }

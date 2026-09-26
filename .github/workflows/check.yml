@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+      - feature/component-v1
+    tags:
+      - homepage-studio-v*
   pull_request:
 
 jobs:

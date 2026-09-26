@@ -126,9 +126,9 @@ const maxIconBytes = 5 * 1024 * 1024;
 const trackInfoProbeTimeoutMs = 5000;
 const maxTrackInfoProbeBytes = 256 * 1024;
 const configuratorName = "homepage-configurator";
-const configuratorVersion = "0.8.0-beta.8";
+const configuratorVersion = "0.8.0-beta.9";
 const defaultConfiguratorRepo = "Kemper51rus/homepage-configurator";
-const defaultConfiguratorBranch = "feature/component-host-v1";
+const defaultConfiguratorBranch = "main";
 const defaultConfiguratorMetadataUrl = `https://api.github.com/repos/${defaultConfiguratorRepo}/contents/version.json?ref=${defaultConfiguratorBranch}`;
 const defaultConfiguratorInstallUrl = `https://raw.githubusercontent.com/${defaultConfiguratorRepo}/${defaultConfiguratorBranch}/install.sh`;
 const defaultMinimumHomepageVersion = "1.13.2";
@@ -2072,7 +2072,6 @@ const componentOperationBodyKeys = new Set([
   "componentId",
   "sourceId",
   "operation",
-  "autoRestart",
 ]);
 
 function getExactComponentOperationInput(body) {

@@ -128,7 +128,6 @@ export function validateComponentManifest(manifest, options = {}) {
   }
   const scripts = pushUniqueStrings(manifest.runtimeScripts, "runtimeScripts", errors);
   scripts.forEach((value, index) => validateRepositoryPath(value, `runtimeScripts[${index}]`, rootDirectory, errors));
-  pushUniqueStrings(manifest.verification, "verification", errors);
 
   return { valid: errors.length === 0, errors };
 }

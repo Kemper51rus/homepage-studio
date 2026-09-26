@@ -60,9 +60,9 @@ test("component API uses the target core module and server-only target context",
   assert.match(operationRoute, /scheduleHomepageRestart\(\)/);
 });
 
-test("Studio updater reads the schema 2 core version and targets the maintained GitHub branch", () => {
+test("Studio updater reads the schema 2 core version and targets the maintained main branch", () => {
   assert.match(apiSource, /manifest\?\.schema === 2 \? manifest\.core\?\.configurator\?\.version/);
-  assert.match(apiSource, /defaultConfiguratorBranch = "feature\/component-host-v1"/);
+  assert.match(apiSource, /defaultConfiguratorBranch = "main"/);
   assert.match(apiSource, /defaultConfiguratorRepo = "Kemper51rus\/homepage-configurator"/);
   assert.match(apiSource, /versionComparison <= 0/);
   assert.match(apiSource, /env\.HOMEPAGE_STUDIO_COMPONENT_DIR = process\.env\.HOMEPAGE_STUDIO_COMPONENT_DIR/);
@@ -71,7 +71,7 @@ test("Studio updater reads the schema 2 core version and targets the maintained 
 test("component API forwards only exact browser body keys", () => {
   assert.match(
     apiSource,
-    /new Set\(\[\s*"action",\s*"componentId",\s*"sourceId",\s*"operation",\s*"autoRestart",\s*\]\)/,
+    /new Set\(\[\s*"action",\s*"componentId",\s*"sourceId",\s*"operation",\s*\]\)/,
   );
   const exactInput = blockBetween(
     apiSource,

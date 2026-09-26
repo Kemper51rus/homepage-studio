@@ -21,6 +21,7 @@ test("published component manifest is valid and declares all capabilities", () =
   assert.deepEqual(result.errors, []);
   assert.equal(result.valid, true);
   assert.equal(manifest.id, "homepage-studio");
+  assert.equal(manifest.requires.homepageConfigurator, ">=0.8.0-beta.9 <0.9.0");
   assert.deepEqual(manifest.capabilities, [
     "dashboard-studio",
     "card-backgrounds",

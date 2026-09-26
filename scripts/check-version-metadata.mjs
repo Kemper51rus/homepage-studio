@@ -4,7 +4,10 @@ import { fileURLToPath } from "url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const packageJson = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+const packageLock = JSON.parse(readFileSync(join(root, "package-lock.json"), "utf8"));
 const metadata = JSON.parse(readFileSync(join(root, "version.json"), "utf8"));
+const component = JSON.parse(readFileSync(join(root, "homepage-component.json"), "utf8"));
+const editorApi = readFileSync(join(root, "overlay/src/mods/browser-editor/api/editor.js"), "utf8");
 
 const expectedRepo = "Kemper51rus/homepage-studio";
 const expectedBranch = "main";
@@ -26,6 +29,15 @@ if (metadata.name !== packageJson.name) {
 
 if (metadata.version !== packageJson.version) {
   fail(`version.json version ${metadata.version} does not match package.json ${packageJson.version}`);
+}
+
+if (packageLock.version !== packageJson.version || packageLock.packages?.[""]?.version !== packageJson.version) {
+  fail(`package-lock.json version does not match package.json ${packageJson.version}`);
+}
+
+const embeddedCoreVersion = editorApi.match(/const configuratorVersion = "([^"]+)";/)?.[1];
+if (component.requires?.homepageConfigurator !== `>=${embeddedCoreVersion} <0.9.0`) {
+  fail(`component Configurator range must start at embedded core version ${embeddedCoreVersion ?? "missing"}`);
 }
 
 if (metadata.repo !== expectedRepo) {

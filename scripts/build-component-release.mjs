@@ -18,7 +18,6 @@ import { loadAndValidateComponentManifest } from "./validate-component-manifest.
 
 const thisFile = fileURLToPath(import.meta.url);
 const projectRoot = path.resolve(path.dirname(thisFile), "..");
-const releaseTagPattern = /^[0-9A-Za-z](?:[0-9A-Za-z._-]{0,126}[0-9A-Za-z])?$/;
 
 function isWithinRoot(rootDirectory, candidate) {
   const relative = path.relative(rootDirectory, candidate);
@@ -48,14 +47,6 @@ function validateReleaseFiles(rootDirectory, files) {
   }
 }
 
-function normalizeTag(value) {
-  if (value === undefined || value === "") return null;
-  if (typeof value !== "string" || !releaseTagPattern.test(value)) {
-    throw new Error("COMPONENT_RELEASE_TAG must contain only safe alphanumeric, dot, underscore, and hyphen characters");
-  }
-  return value;
-}
-
 export function buildComponentRelease(options = {}) {
   const rootDirectory = path.resolve(options.rootDirectory ?? projectRoot);
   const manifestPath = path.resolve(options.manifestPath ?? path.join(rootDirectory, "homepage-component.json"));
@@ -68,9 +59,11 @@ export function buildComponentRelease(options = {}) {
     throw new Error(`Invalid component manifest:\n- ${validation.errors.join("\n- ")}`);
   }
 
-  const tag = normalizeTag(
-    options.tag ?? process.env.COMPONENT_RELEASE_TAG ?? `${validation.manifest.id}-v${validation.manifest.version}`,
-  );
+  const canonicalTag = `${validation.manifest.id}-v${validation.manifest.version}`;
+  const tag = options.tag ?? process.env.COMPONENT_RELEASE_TAG ?? canonicalTag;
+  if (tag !== canonicalTag) {
+    throw new Error(`COMPONENT_RELEASE_TAG must exactly match ${canonicalTag}`);
+  }
   const artifactName = "homepage-studio-component.tar.gz";
   const metadataName = "homepage-component-release.json";
   const configuredOutput = options.outputDirectory ?? process.env.COMPONENT_RELEASE_DIR ?? "dist";

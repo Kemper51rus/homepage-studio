@@ -1,5 +1,47 @@
 # Установка и удаление
 
+## Рекомендуемый Component Lifecycle
+
+Homepage Studio устанавливается поверх актуального Homepage Configurator из браузерного окна `Обновления`:
+
+1. В Classic Configurator откройте режим редактирования и окно `Обновления`.
+2. В карточке **Homepage Studio** нажмите `Install`.
+3. Для переустановки актуального release используйте `Update`; для возврата к Classic — `Remove`.
+
+Configurator загружает фиксированные release metadata и `homepage-studio-component.tar.gz` из GitHub Releases. Сервер проверяет component id, schema, tag, версию, имя артефакта, размер и SHA-256, ограничивает redirect hosts и безопасно распаковывает архив. Клиент не передаёт URL, путь или команду. Локальные `HOMEPAGE_STUDIO_COMPONENT_DIR` и `HOMEPAGE_CONFIGURATOR_SOURCE_DIR` в штатном browser lifecycle не требуются.
+
+Install/Update/Remove используют maintenance lock, production build и rollback manifest/source/build при ошибке; после успеха API планирует автоматический перезапуск Homepage. `Update` и `Remove` сохраняют `config/service-updates.yaml`, `config/service-update-sources.yaml`, `config/three-x-ui.yaml` и каталоги `.homepage-studio/service-update-*`. `Remove` восстанавливает заменённые core-файлы и удаляет owned overlay, managed CSS и runtime scripts. Опциональный loopback endpoint check выполняется до рестарта и проверяет текущий процесс, а не новый build.
+
+При обновлении самого Configurator сначала выполните `Remove`, обновите Classic core и затем снова нажмите `Install`.
+
+> Editor API и component mutation API не имеют собственного token-gate. Публикуйте Homepage только за Authentik или другим внешним authentication proxy.
+
+Для разработки release artifact собирается так:
+
+```bash
+npm run check
+npm run release:component
+```
+
+Версия компонента берётся из `homepage-component.json`. Сборщик создаёт `dist/homepage-studio-component.tar.gz` и `dist/homepage-component-release.json`.
+
+## Локальный CLI Для Разработки
+
+Локальный checkout Studio можно явно передать Configurator CLI как trusted directory:
+
+```bash
+cd /path/to/homepage-configurator
+node install.mjs --target /opt/homepage \
+  --component install homepage-studio \
+  --component-dir /path/to/homepage-studio
+```
+
+`--component-dir` не принимает URL и предназначен для разработки/тестирования, а не для штатной browser-установки.
+
+## Legacy Standalone Installer
+
+Оставшаяся ниже документация относится к сохранённой интегрированной линии Studio (`package.json`/`version.json`, версия `0.6.83`). Для новых установок используйте component lifecycle выше.
+
 ## Требования
 
 Для установки нужен именно checkout исходников [gethomepage/homepage](https://github.com/gethomepage/homepage), а не только директория `config`.

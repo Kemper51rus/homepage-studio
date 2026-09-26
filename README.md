@@ -3,9 +3,9 @@
   Homepage Studio
 </h1>
 
-> Этот репозиторий сохраняет интегрированную линию Dashboard Studio. Точная исходная версия до разделения доступна по тегу `studio-integrated-v0.6.82`; ветка `main` использует собственный источник обновлений `Kemper51rus/homepage-studio`.
+> Homepage Studio — compile-time компонент для [Homepage Configurator](https://github.com/Kemper51rus/homepage-configurator). Интегрированная линия до разделения сохранена по тегу `studio-integrated-v0.6.82`; её standalone installer остаётся в репозитории только для совместимости и не является рекомендуемым способом новой установки.
 
-Отдельный мод для [gethomepage/homepage](https://github.com/gethomepage/homepage), который добавляет редактирование dashboard прямо из браузера:
+Компонент для [gethomepage/homepage](https://github.com/gethomepage/homepage), который расширяет Classic Configurator и добавляет редактирование dashboard прямо из браузера:
 
 - настройка, добавление и удаление сервисов;
 - настройка, добавление и удаление закладок;
@@ -21,44 +21,34 @@
 
 ## Quick install
 
-Установка target-проекта Homepage через Proxmox VE Community Scripts из Proxmox VE Shell:
+1. Установите Homepage и актуальный [Homepage Configurator](https://github.com/Kemper51rus/homepage-configurator).
+2. Откройте режим редактирования Configurator.
+3. В окне `Обновления` найдите карточку **Homepage Studio** и нажмите `Install`.
 
-```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/homepage.sh)"
-```
+Configurator получает последний `homepage-studio-component.tar.gz` из GitHub Releases, проверяет release metadata, версию, размер и SHA-256, безопасно распаковывает архив, выполняет production build и планирует автоматический перезапуск Homepage. Локальные `HOMEPAGE_STUDIO_COMPONENT_DIR` и `HOMEPAGE_CONFIGURATOR_SOURCE_DIR` для штатной установки не нужны.
 
-Источник: [community-scripts.org/scripts/homepage](https://community-scripts.org/scripts/homepage).
+## Обновление И Удаление
 
-Установка этого мода (Homepage configurator):
+Карточка Homepage Studio в окне `Обновления` поддерживает:
 
-```bash
-bash <(curl -Ls https://raw.githubusercontent.com/Kemper51rus/homepage-studio/main/install.sh)
-```
+- `Install` — переход Classic → Studio;
+- `Update` — проверенная переустановка актуального Studio release;
+- `Remove` — возврат Studio → Classic с восстановлением заменённых core-файлов.
 
-Если target был создан через Proxmox VE Community Scripts, запускайте установку мода уже внутри созданного LXC. Установщик сам найдёт `/opt/homepage`, будет использовать `/opt/homepage/config` для `custom.css/custom.js` и сохранит флаг редактора в существующий `/opt/homepage/.env`.
+Браузер передаёт только фиксированные `componentId=homepage-studio`, `sourceId=github-stable` и операцию. Репозиторий, release URLs и имя артефакта задаются серверным allowlist и не принимаются от клиента. Component host использует maintenance lock, сохраняет manifest/source/build snapshot и выполняет rollback при ошибке сборки или pre-restart endpoint check. `Update` и `Remove` сохраняют persistent-конфиги `service-updates.yaml`, `service-update-sources.yaml`, `three-x-ui.yaml` и runtime data directories; `Remove` восстанавливает заменённые core-файлы и удаляет owned overlay/CSS/scripts.
 
-Повторный запуск `install.sh` поддерживает разные сценарии обновления:
+> Editor API и component mutation API не имеют собственного token-gate. Публикуйте Homepage только за Authentik или другим внешним authentication proxy.
 
-- `Установить` - первая установка;
-- `Обновить мод из GitHub` - пройти preflight нового patch и переустановить мод из актуальной версии репозитория на GitHub;
-- `Обновить интеграцию в target из текущего каталога` - переустановить мод в target из локального checkout, из которого запущен скрипт;
-- `Удалить` - убрать мод из target-проекта.
+При обновлении самого Homepage Configurator сначала удалите Studio, обновите Classic core и затем снова установите Studio. Подробности и CLI для разработки описаны в [`doc/install.md`](doc/install.md).
 
-При установке мода инсталлятор автоматически встраивает и настраивает весь managed-набор дополнений (`cards`, `extras`, `radio` и `particles`). Управление и отключение отдельных возможностей осуществляется через встроенный браузерный интерфейс настроек редактора. Блоки `cards` и `extras` в `custom.css` помечены предупреждением: правки внутри них будут заменены при следующей установке или обновлении.
+## Версии И Релизы
 
-Ассеты радио копируются в каталог, который Homepage отдаёт как `/images/radio`: обычно `/srv/homepage-images/radio`, а в LXC от Proxmox VE Community Scripts - `/opt/homepage/public/images/radio`. После установки дополнений скрипт перезапускает `homepage.service`, потому что `next start` не начинает отдавать новые файлы из `public/images` без перезапуска процесса.
+Версия компонента хранится в [`homepage-component.json`](homepage-component.json). Актуальный опубликованный component release доступен по адресу [GitHub Releases / latest](https://github.com/Kemper51rus/homepage-studio/releases/latest). Release состоит из:
 
-Если в существующих `custom.css` или `custom.js` есть содержимое вне `HOMEPAGE-EDITOR` managed-блоков, интерактивный установщик покажет найденные строки и спросит, удалять ли такие файлы перед установкой полного managed-набора. Для автоматического запуска можно явно задать `--clean-custom keep` или `--clean-custom delete`.
+- `homepage-studio-component.tar.gz`;
+- `homepage-component-release.json` с `schema`, `id`, `version`, `tag`, `artifactName`, `sha256` и `size`.
 
-Минимальная поддерживаемая версия target-проекта Homepage хранится в [`version.json`](version.json). Если target старее, консольный установщик и браузерное окно `Обновления` остановят обновление мода и попросят сначала выполнить `update` для самого Homepage.
-
-## Обновление Из Браузера
-
-Версия мода публикуется в [`version.json`](version.json). Установленный редактор проверяет этот файл на GitHub не чаще одного раза в сутки для каждого браузера. Ручная проверка и запуск обновления доступны в режиме редактирования по кнопке `Обновления`.
-
-Кнопка `Обновить с GitHub` запускает на сервере тот же установщик из `main`, ставит полный managed-набор `custom.js/custom.css`, собирает Homepage и после успешной установки перезапускает `homepage.service`. Для нестандартных layout можно задать env-переменные сервиса: `HOMEPAGE_CONFIGURATOR_TARGET_DIR`, `HOMEPAGE_CONFIGURATOR_VERSION_URL`, `HOMEPAGE_CONFIGURATOR_REPO`, `HOMEPAGE_CONFIGURATOR_BRANCH`, `HOMEPAGE_CONFIGURATOR_INSTALL_URL`.
-
-Если в окружении есть только standalone runtime без полного checkout Homepage, браузерный updater не будет пытаться патчить неполную сборку и покажет причину. В таком случае обновление выполняется внешним deploy-процессом.
+`package.json` и `version.json` относятся к сохранённой интегрированной/standalone линии и не определяют версию component release.
 
 ## Использование
 
@@ -124,7 +114,7 @@ Manifest компонента проверяется и собирается в 
 npm run release:component
 ```
 
-По умолчанию архив и JSON-метаданные создаются в `dist/`. Другой каталог можно задать через `COMPONENT_RELEASE_DIR` (относительный путь считается от корня репозитория). Безопасный release tag добавляется через `COMPONENT_RELEASE_TAG`; допустимы латинские буквы, цифры, `.`, `_` и `-`, при этом tag должен начинаться и заканчиваться буквой или цифрой.
+По умолчанию архив и JSON-метаданные создаются в `dist/`. Другой каталог можно задать через `COMPONENT_RELEASE_DIR` (относительный путь считается от корня репозитория). Release tag всегда канонический: `homepage-studio-v<version>` из `homepage-component.json`. Если задан `COMPONENT_RELEASE_TAG`, он обязан точно совпадать с этим значением, иначе сборка останавливается.
 
 В архив входят только `homepage-component.json`, объявленные `overlay.files`, исходники `managedCss` и `runtimeScripts`. Сборка сначала валидирует manifest и отклоняет пути, которые через symlink выходят за корень компонента. JSON-метаданные содержат schema, id/version/tag, имя архива, SHA-256, размер и время создания.
 
