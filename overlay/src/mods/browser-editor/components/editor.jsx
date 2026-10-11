@@ -11626,6 +11626,28 @@ function useServiceRowHeightBalancer() {
         : [];
     };
 
+    // Measure natural height off-flow: resetting live card heights forces layout
+    // and lets browser scroll anchoring move the dashboard on every widget tick.
+    const naturalHeight = (card) => {
+      const clone = card.cloneNode(true);
+      clone.dataset.editorHeightMeasurement = "true";
+      clone.setAttribute("aria-hidden", "true");
+      clone.inert = true;
+      clone.removeAttribute("id");
+      clone.querySelectorAll("[id]").forEach((element) => element.removeAttribute("id"));
+      Object.assign(clone.style, {
+        position: "fixed", visibility: "hidden", pointerEvents: "none",
+        left: "0", top: "0", width: `${card.getBoundingClientRect().width}px`,
+        boxSizing: "border-box", height: "auto", maxHeight: "none",
+      });
+      card.parentElement.appendChild(clone);
+      try {
+        return clone.getBoundingClientRect().height;
+      } finally {
+        clone.remove();
+      }
+    };
+
     const clearHeights = () => {
       groupElements().forEach((group) => {
         directCardsForGroup(group).forEach((card) => {
@@ -11636,7 +11658,8 @@ function useServiceRowHeightBalancer() {
 
     const applyEqualHeights = () => {
       frame = null;
-      clearHeights();
+      const desiredHeights = new Map();
+      groupElements().forEach((group) => directCardsForGroup(group).forEach((card) => desiredHeights.set(card, "")));
 
       const groupsByParent = new Map();
       groupElements()
@@ -11688,16 +11711,17 @@ function useServiceRowHeightBalancer() {
 
               const maxHeight = Math.ceil(
                 Math.max(
-                  ...cardsInPosition.map(
-                    (card) => card.getBoundingClientRect().height,
-                  ),
+                  ...cardsInPosition.map(naturalHeight),
                 ),
               );
               cardsInPosition.forEach((card) => {
-                card.style.height = `${maxHeight}px`;
+                desiredHeights.set(card, `${maxHeight}px`);
               });
             }
           });
+      });
+      desiredHeights.forEach((height, card) => {
+        if (card.style.height !== height) card.style.height = height;
       });
     };
 
@@ -11711,9 +11735,22 @@ function useServiceRowHeightBalancer() {
 
     const resizeObserver = new ResizeObserver(scheduleApply);
     groupElements().forEach((group) => resizeObserver.observe(group));
-    const mutationObserver = new MutationObserver(scheduleApply);
+    const mutationObserver = new MutationObserver((records) => {
+      const relevant = records.some((record) => {
+        const changed = [...record.addedNodes, ...record.removedNodes];
+        if (changed.length && changed.every((node) => node.nodeType === 1 && node.dataset.editorHeightMeasurement === "true")) return false;
+        const target = record.target.nodeType === 1 ? record.target : record.target.parentElement;
+        return target?.closest("[data-editor-service-group='true']")
+          || changed.some((node) => node.nodeType === 1 && (node.matches("[data-editor-service-group='true']") || node.querySelector("[data-editor-service-group='true']")));
+      });
+      if (relevant) {
+        groupElements().forEach((group) => resizeObserver.observe(group));
+        scheduleApply();
+      }
+    });
     mutationObserver.observe(document.body, {
       childList: true,
+      characterData: true,
       subtree: true,
     });
 
