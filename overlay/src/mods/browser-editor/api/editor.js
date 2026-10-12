@@ -13,6 +13,7 @@ import createLogger from "utils/logger";
 
 import { executeComponentOperation, getComponentStatusCatalog } from "../lib/component-operations";
 import { getGithubComponentCatalog, prepareGithubComponentSources } from "../lib/component-github";
+import { ensureConfigFile, updateConfigFile, writeConfigFile } from "../lib/config-writer";
 
 const logger = createLogger("configEditorService");
 
@@ -569,7 +570,7 @@ async function readTextIfExists(filePath) {
 
 async function writeJsonFile(filePath, data) {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
-  await fs.writeFile(filePath, `${JSON.stringify(data, null, 2)}\n`, "utf8");
+  await writeConfigFile(filePath, `${JSON.stringify(data, null, 2)}\n`);
 }
 
 async function getConfiguratorUpdateFiles() {
@@ -1349,7 +1350,7 @@ async function writeYamlFile(file, data) {
     sortKeys: false,
   });
 
-  await fs.writeFile(filePath, dumped, "utf8");
+  await writeConfigFile(filePath, dumped);
 }
 
 async function fileExists(filePath) {
@@ -1364,10 +1365,7 @@ async function fileExists(filePath) {
 async function ensureTextFile(fileName) {
   const filePath = path.join(CONF_DIR, fileName);
 
-  if (!(await fileExists(filePath))) {
-    await fs.mkdir(CONF_DIR, { recursive: true });
-    await fs.writeFile(filePath, "", "utf8");
-  }
+  await ensureConfigFile(filePath);
 
   return filePath;
 }
@@ -1392,7 +1390,7 @@ async function writeRawConfigFile(fileName, format, content) {
     yaml.load(nextContent || "");
   }
 
-  await fs.writeFile(filePath, nextContent, "utf8");
+  await writeConfigFile(filePath, nextContent);
 }
 
 function isSupportedSettingsTabFile(fileName) {
@@ -1792,30 +1790,21 @@ function generateCssForLayouts(layouts) {
 
 async function updateCustomCssWithStyles(generatedCss) {
   const customCssPath = path.join(CONF_DIR, "custom.css");
-  let currentContent = "";
+  await updateConfigFile(customCssPath, (currentContent) => {
+    const startIdx = currentContent.indexOf(CSS_START_MARKER);
+    const endIdx = currentContent.indexOf(CSS_END_MARKER);
+    const blockContent = `${CSS_START_MARKER}\n/* This block is auto-generated. Do not edit manually. */\n${generatedCss}${CSS_END_MARKER}`;
 
-  if (existsSync(customCssPath)) {
-    currentContent = await fs.readFile(customCssPath, "utf8");
-  }
-
-  const startIdx = currentContent.indexOf(CSS_START_MARKER);
-  const endIdx = currentContent.indexOf(CSS_END_MARKER);
-
-  const blockContent = `${CSS_START_MARKER}\n/* This block is auto-generated. Do not edit manually. */\n${generatedCss}${CSS_END_MARKER}`;
-
-  let nextContent = "";
-  if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
-    nextContent =
-      currentContent.substring(0, startIdx) +
-      blockContent +
-      currentContent.substring(endIdx + CSS_END_MARKER.length);
-  } else {
-    const separator =
-      currentContent && !currentContent.endsWith("\n") ? "\n\n" : "";
-    nextContent = currentContent + separator + blockContent + "\n";
-  }
-
-  await fs.writeFile(customCssPath, nextContent, "utf8");
+    if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+      return (
+        currentContent.substring(0, startIdx) +
+        blockContent +
+        currentContent.substring(endIdx + CSS_END_MARKER.length)
+      );
+    }
+    const separator = currentContent && !currentContent.endsWith("\n") ? "\n\n" : "";
+    return currentContent + separator + blockContent + "\n";
+  });
 }
 
 function generateCssForItems(items) {
